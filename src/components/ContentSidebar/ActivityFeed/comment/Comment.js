@@ -32,6 +32,7 @@ type Props = {
     created_by: User,
     created_at: string | number,
     is_reply_comment?: boolean,
+    message: string,
     modified_at?: string | number,
     permissions?: BoxItemPermission,
     id: string,
@@ -100,6 +101,7 @@ class Comment extends React.Component<Props, State> {
             inlineDeleteMessage = messages.commentDeletePrompt,
             isPending,
             error,
+            message,
             onDelete,
             onEdit,
             tagged_message = '',
@@ -184,7 +186,7 @@ class Comment extends React.Component<Props, State> {
                         {!isEditing ? (
                             <CommentText
                                 id={id}
-                                tagged_message={tagged_message}
+                                tagged_message={tagged_message || message}
                                 translatedTaggedMessage={translatedTaggedMessage}
                                 {...translations}
                                 translationFailed={error ? true : null}

@@ -11,6 +11,7 @@ import FolderAPI from './Folder';
 import FileAPI from './File';
 import WebLinkAPI from './WebLink';
 import SearchAPI from './Search';
+import RealtimeAPI from './Realtime';
 import RecentsAPI from './Recents';
 import VersionsAPI from './Versions';
 import CommentsAPI from './Comments';
@@ -75,6 +76,11 @@ class APIFactory {
      * @property {CommentsAPI}
      */
     commentsAPI: CommentsAPI;
+
+    /**
+     * @property {RealtimeAPI}
+     */
+    realtimeAPI: RealtimeAPI;
 
     /**
      * @property {TasksAPI}
@@ -509,6 +515,20 @@ class APIFactory {
 
         this.appIntegrationsAPI = new AppIntegrationsAPI(this.options);
         return this.appIntegrationsAPI;
+    }
+
+    /**
+     * API for Realtime events
+     *
+     * @param {boolean} shouldDestroy - true if the realtime API should destroy
+     * @returns {RealtimeEvents}
+     */
+    getRealtimeAPI(shouldDestroy: boolean): RealtimeAPI {
+        if (this.realtimeAPI && shouldDestroy) {
+            this.realtimeAPI.destroy();
+        }
+        this.realtimeAPI = new RealtimeAPI(this.options);
+        return this.realtimeAPI;
     }
 }
 

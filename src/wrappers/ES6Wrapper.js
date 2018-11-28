@@ -83,7 +83,6 @@ class ES6Wrapper extends EventEmitter {
         this.token = token;
         this.options = options;
         this.options.version = __VERSION__;
-        this.emit = this.emit.bind(this);
         const container = options.container || DEFAULT_CONTAINER;
         this.container =
             container instanceof HTMLElement ? container : ((document.querySelector(container): any): HTMLElement);
@@ -168,7 +167,7 @@ class ES6Wrapper extends EventEmitter {
      * @param {Object} data - event data
      * @return {boolean} true if the event had listeners, false otherwise.
      */
-    emit(eventName: string, data: any): boolean {
+    emit = (eventName: string, data: any): boolean => {
         try {
             return super.emit(eventName, data);
         } catch (e) {
@@ -176,7 +175,7 @@ class ES6Wrapper extends EventEmitter {
         }
 
         return false;
-    }
+    };
 }
 
 export default ES6Wrapper;

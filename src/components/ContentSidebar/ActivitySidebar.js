@@ -67,7 +67,52 @@ class ActivitySidebar extends React.PureComponent<Props, State> {
         const { currentUser } = this.props;
         this.fetchFeedItems(true);
         this.fetchCurrentUser(currentUser);
+        this.subscribe(this.props);
     }
+
+    /**
+     * Initialize subscription to event stream
+     *
+     * @private
+     * @param file
+     * @return {void}
+     */
+    subscribe({ file }: Props = this.props) {
+        this.props.api.getRealtimeAPI(true).subscribe({ callback: this.subscribeCallback, fileId: file.id });
+    }
+
+    /**
+     * Handle subscription events
+     *
+     * @private
+     * @param events
+     * @param position
+     */
+    subscribeCallback = ({ events }: Object) => {
+        events.forEach(event => {
+            const { source } = event;
+            const { item } = source;
+
+            if (!source || !source.id || !item || !item.id) {
+                return;
+            }
+
+            switch (event.event_type) {
+                case 'COMMENT_CREATE': {
+                    this.props.api.getFeedAPI(false).addFeedItem(item.id, source);
+                    this.fetchFeedItems();
+                    break;
+                }
+                case 'COMMENT_DELETE': {
+                    this.props.api.getFeedAPI(false).deleteFeedItem(source.id);
+                    this.fetchFeedItems();
+                    break;
+                }
+                default:
+                    break;
+            }
+        });
+    };
 
     /**
      * Fetches a Users info
@@ -429,7 +474,6 @@ class ActivitySidebar extends React.PureComponent<Props, State> {
      * Gets the user avatar URL
      *
      * @param {string} userId the user id
-     * @param {string} fileId the file id
      * @return the user avatar URL string for a given user with access token attached
      */
     getAvatarUrl = async (userId: string): Promise<?string> => {

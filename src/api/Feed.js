@@ -658,11 +658,11 @@ class Feed extends Base {
      * @param {string} id - The id of the feed item to be deleted
      * @param {Function} successCallback - function to be called after the delete
      */
-    deleteFeedItem = (id: string, successCallback: Function = noop) => {
-        const cachedItems = this.getCachedItems(this.id);
+    deleteFeedItem = (id: string, successCallback: Function = noop, fileId: string = this.id) => {
+        const cachedItems = this.getCachedItems(fileId);
         if (cachedItems) {
             const feedItems = cachedItems.items.filter(feedItem => feedItem.id !== id);
-            this.setCachedItems(this.id, feedItems);
+            this.setCachedItems(fileId, feedItems);
 
             if (!this.isDestroyed()) {
                 successCallback(id);
@@ -775,6 +775,22 @@ class Feed extends Base {
         // Increment the assignment collection count by the number of new assignments
         task.task_assignment_collection.total_count += assignments.length;
         return task;
+    }
+
+    addFeedItem(fileId: string, newItem: Object) {
+        const cachedItems = this.getCachedItems(fileId);
+        const feedItems = cachedItems ? cachedItems.items : [];
+
+        // Avoid duplicate feed items in the activity feed
+        if (feedItems.some(feedItem => feedItem.id === newItem.id)) {
+            return;
+        }
+
+        const updatedItems = [...feedItems, newItem].sort(
+            (a, b) => Date.parse(a.created_at) - Date.parse(b.created_at),
+        );
+
+        this.setCachedItems(fileId, updatedItems);
     }
 
     /**
