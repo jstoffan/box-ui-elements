@@ -9,11 +9,14 @@
         margin-bottom: 0;
         margin-right: 0;
 
+        input {
+            width: 100%;
+        }
+
         input,
         input:focus {
             border-bottom-right-radius: 0;
             border-top-right-radius: 0;
-            width: 100%;
         }
     }
 

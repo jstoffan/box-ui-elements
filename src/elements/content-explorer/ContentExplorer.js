@@ -419,7 +419,7 @@ class ContentExplorer extends Component<Props, State> {
      * @return {void}
      */
     fetchFolder = (id?: string, triggerNavigationEvent?: boolean = true) => {
-        const { rootFolderId }: Props = this.props;
+        const { canShare, canSetShareAccess, rootFolderId }: Props = this.props;
         const {
             currentCollection: { id: currentId },
             currentOffset,
@@ -456,6 +456,7 @@ class ContentExplorer extends Component<Props, State> {
             offset,
             sortBy,
             sortDirection,
+            canShare || canSetShareAccess,
             (collection: Collection) => {
                 this.fetchFolderSuccessCallback(collection, triggerNavigationEvent);
             },
@@ -1378,7 +1379,7 @@ class ContentExplorer extends Component<Props, State> {
                             isOpen={isShareModalOpen}
                             canSetShareAccess={canSetShareAccess}
                             onShareAccessChange={this.changeShareAccess}
-                            onCancel={this.refreshCollection}
+                            onCancel={this.closeModals}
                             item={selected}
                             isLoading={isLoading}
                             parentElement={this.rootElement}

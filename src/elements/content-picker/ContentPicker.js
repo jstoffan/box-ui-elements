@@ -444,7 +444,7 @@ class ContentPicker extends Component<Props, State> {
      * @return {void}
      */
     fetchFolder = (id?: string, triggerNavigationEvent?: boolean = true): void => {
-        const { rootFolderId }: Props = this.props;
+        const { canSetShareAccess, rootFolderId }: Props = this.props;
         const {
             currentCollection: { id: currentId },
             currentOffset,
@@ -481,6 +481,7 @@ class ContentPicker extends Component<Props, State> {
             offset,
             sortBy,
             sortDirection,
+            canSetShareAccess,
             (collection: Collection) => {
                 this.fetchFolderSuccessCallback(collection, triggerNavigationEvent);
             },
@@ -512,7 +513,6 @@ class ContentPicker extends Component<Props, State> {
      *
      * @private
      * @param {Boolean|void} [triggerNavigationEvent] To trigger navigate event
-     * @param {Boolean|void} [forceFetch] To void cache
      * @return {void}
      */
     showRecents(triggerNavigationEvent: boolean = true): void {

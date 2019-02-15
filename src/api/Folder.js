@@ -6,7 +6,7 @@
 
 import noop from 'lodash/noop';
 import flatten from '../utils/flatten';
-import { FOLDER_FIELDS_TO_FETCH } from '../utils/fields';
+import { FOLDER_FIELDS_TO_FETCH, FOLDER_SHARED_FIELDS_TO_FETCH } from '../utils/fields';
 import { getBadItemError } from '../utils/error';
 import Item from './Item';
 import FileAPI from './File';
@@ -43,6 +43,11 @@ class Folder extends Item {
      * @property {string}
      */
     sortDirection: SortDirection;
+
+    /**
+     * @property {boolean}
+     */
+    hasSharedLinks: boolean;
 
     /**
      * @property {Array}
@@ -95,7 +100,7 @@ class Folder extends Item {
      *
      * @return {void}
      */
-    finish(): void {
+    finish = (): void => {
         if (this.isDestroyed()) {
             return;
         }
@@ -112,7 +117,7 @@ class Folder extends Item {
             throw getBadItemError();
         }
 
-        const collection: Collection = {
+        this.successCallback({
             id,
             name,
             offset,
@@ -124,9 +129,8 @@ class Folder extends Item {
             sortBy: this.sortBy,
             sortDirection: this.sortDirection,
             totalCount: total_count,
-        };
-        this.successCallback(collection);
-    }
+        });
+    };
 
     /**
      * Handles the folder fetch response
@@ -177,29 +181,34 @@ class Folder extends Item {
     /**
      * Does the network request for fetching a folder
      *
-     * @return {void}
+     * @return {Promise}
      */
-    folderRequest(): Promise<void> {
-        if (this.isDestroyed()) {
-            return Promise.reject();
+    folderRequest({ fields }: { fields: Array<string> }): Promise<StringAnyMap> {
+        return this.xhr.get({
+            url: this.getUrl(this.id),
+            params: {
+                direction: this.sortDirection.toLowerCase(),
+                limit: this.limit,
+                offset: this.offset,
+                fields: fields.toString(),
+                sort: this.sortBy.toLowerCase(),
+            },
+        });
+    }
+
+    /**
+     * Does the network request for fetching a folder's shared link information
+     *
+     * @return {Promise}
+     */
+    folderSharedRequest = (): Promise<?StringAnyMap> => {
+        if (!this.hasSharedLinks) {
+            return Promise.resolve();
         }
 
-        this.errorCode = ERROR_CODE_FETCH_FOLDER;
-
-        return this.xhr
-            .get({
-                url: this.getUrl(this.id),
-                params: {
-                    direction: this.sortDirection.toLowerCase(),
-                    limit: this.limit,
-                    offset: this.offset,
-                    fields: FOLDER_FIELDS_TO_FETCH.toString(),
-                    sort: this.sortBy.toLowerCase(),
-                },
-            })
-            .then(this.folderSuccessHandler)
-            .catch(this.errorHandler);
-    }
+        // Fetch and re-render with shared link information separately, as the request can be very slow
+        return this.folderRequest({ fields: FOLDER_SHARED_FIELDS_TO_FETCH }).then(this.folderSuccessHandler);
+    };
 
     /**
      * Gets a box folder and its items
@@ -209,8 +218,10 @@ class Folder extends Item {
      * @param {number} offset - starting index from which to retrieve items
      * @param {string} sortBy - sort by field
      * @param {string} sortDirection - sort direction
+     * @param {string} hasSharedLinks - option to fetch shared link information
      * @param {Function} successCallback - Function to call with results
      * @param {Function} errorCallback - Function to call with errors
+     * @param {Object} options - Options container
      * @param {boolean|void} [options.fields] - Optionally include specific fields
      * @param {boolean|void} [options.forceFetch] - Optionally Bypasses the cache
      * @param {boolean|void} [options.refreshCache] - Optionally Updates the cache
@@ -222,6 +233,7 @@ class Folder extends Item {
         offset: number,
         sortBy: SortBy,
         sortDirection: SortDirection,
+        hasSharedLinks: boolean,
         successCallback: Function,
         errorCallback: Function,
         options: FetchOptions = {},
@@ -237,8 +249,10 @@ class Folder extends Item {
         this.offset = offset;
         this.sortBy = sortBy;
         this.sortDirection = sortDirection;
+        this.hasSharedLinks = hasSharedLinks;
         this.successCallback = successCallback;
         this.errorCallback = errorCallback;
+        this.errorCode = ERROR_CODE_FETCH_FOLDER;
 
         // Clear the cache if needed
         if (options.forceFetch) {
@@ -252,16 +266,16 @@ class Folder extends Item {
         }
 
         // Make the XHR request
-        this.folderRequest();
+        this.folderRequest({ fields: FOLDER_FIELDS_TO_FETCH })
+            .then(this.folderSuccessHandler)
+            .then(this.folderSharedRequest)
+            .catch(this.errorHandler);
     }
 
     /**
      * API to rename an Item
      *
-     * @param {string} id - parent folder id
-     * @param {string} name - new folder name
-     * @param {Function} successCallback - success callback
-     * @param {Function} errorCallback - error callback
+     * @param {string} data - the box item data
      * @return {void}
      */
     createSuccessHandler = ({ data }: { data: BoxItem }): void => {
