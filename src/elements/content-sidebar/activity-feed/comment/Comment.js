@@ -26,6 +26,7 @@ import type { BoxCommentPermission, ActionItemError } from '../../../../common/t
 import './Comment.scss';
 
 type Props = {
+    children?: React.Node,
     created_at: string | number,
     created_by: User,
     currentUser?: User,
@@ -95,6 +96,7 @@ class Comment extends React.Component<Props, State> {
 
     render(): React.Node {
         const {
+            children,
             created_by,
             created_at,
             permissions = {},
@@ -216,6 +218,7 @@ class Comment extends React.Component<Props, State> {
                                 getUserProfileUrl={getUserProfileUrl}
                             />
                         )}
+                        {children}
                     </Media.Body>
                 </Media>
                 {/* $FlowFixMe */}

@@ -88,7 +88,20 @@ type AppActivityItems = {
     total_count: number,
 };
 
-type FeedItem = Comment | Task | BoxItemVersion | AppActivityItem;
+type Annotation = {
+    created_at: string,
+    created_by: User,
+    details: {
+        location: {
+            page: number,
+        },
+    },
+    id: string,
+    message: string,
+    type: 'annotation',
+};
+
+type FeedItem = Comment | Task | BoxItemVersion | AppActivityItem | Annotation;
 
 type FeedItems = Array<FeedItem>;
 

@@ -48,6 +48,7 @@ type ExternalProps = {
     activeFeedEntryType?: FocusableFeedItemType,
     currentUser?: User,
     getUserProfileUrl?: GetProfileUrlCallback,
+    onAnnotationChange: Function,
     onCommentCreate: Function,
     onCommentDelete: (comment: Comment) => any,
     onCommentUpdate: () => any,
@@ -117,6 +118,24 @@ class ActivitySidebar extends React.PureComponent<Props, State> {
         const { currentUser } = this.props;
         this.fetchFeedItems(true);
         this.fetchCurrentUser(currentUser);
+        this.updateAnnotation();
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        const { activeFeedEntryId } = this.props;
+        const { activeFeedEntryId: prevActiveFeedEntryId } = prevProps;
+
+        if (activeFeedEntryId !== prevActiveFeedEntryId) {
+            this.updateAnnotation();
+        }
+    }
+
+    updateAnnotation() {
+        const { activeFeedEntryId, activeFeedEntryType, onAnnotationChange } = this.props;
+
+        if (onAnnotationChange && activeFeedEntryType === 'annotation') {
+            onAnnotationChange(activeFeedEntryId);
+        }
     }
 
     /**
@@ -587,6 +606,7 @@ class ActivitySidebar extends React.PureComponent<Props, State> {
             elementId,
             file,
             isDisabled = false,
+            onAnnotationChange,
             onVersionHistoryClick,
             getUserProfileUrl,
             activeFeedEntryId,
@@ -617,6 +637,7 @@ class ActivitySidebar extends React.PureComponent<Props, State> {
                     currentUser={currentUser}
                     isDisabled={isDisabled}
                     onAppActivityDelete={this.deleteAppActivity}
+                    onAnnotationChange={onAnnotationChange}
                     onCommentCreate={this.createComment}
                     onCommentDelete={this.deleteComment}
                     onCommentUpdate={this.updateComment}

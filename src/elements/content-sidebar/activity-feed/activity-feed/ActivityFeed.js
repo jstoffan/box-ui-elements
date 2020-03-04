@@ -36,6 +36,7 @@ type Props = {
     getUserProfileUrl?: GetProfileUrlCallback,
     isDisabled?: boolean,
     mentionSelectorContacts?: SelectorItems<User>,
+    onAnnotationChange?: Function,
     onAppActivityDelete?: Function,
     onCommentCreate?: Function,
     onCommentDelete?: Function,
@@ -194,6 +195,7 @@ class ActivityFeed extends React.Component<Props, State> {
             getUserProfileUrl,
             file,
             onAppActivityDelete,
+            onAnnotationChange,
             onCommentCreate,
             getApproverWithQuery,
             getMentionWithQuery,
@@ -255,6 +257,7 @@ class ActivityFeed extends React.Component<Props, State> {
                             currentUser={currentUser}
                             onTaskAssignmentUpdate={onTaskAssignmentUpdate}
                             onAppActivityDelete={onAppActivityDelete}
+                            onAnnotationChange={onAnnotationChange}
                             onCommentDelete={hasCommentPermission ? onCommentDelete : noop}
                             onCommentEdit={hasCommentPermission ? onCommentUpdate : noop}
                             // We don't know task edit/delete specific permissions,

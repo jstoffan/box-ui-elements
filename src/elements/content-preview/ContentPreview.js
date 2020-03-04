@@ -107,6 +107,7 @@ type State = {
     isReloadNotificationVisible: boolean,
     isThumbnailSidebarOpen: boolean,
     prevFileIdProp?: string, // the previous value of the "fileId" prop. Needed to implement getDerivedStateFromProps
+    selectedAnnotation?: string,
     selectedVersion?: BoxItemVersion,
 };
 
@@ -449,6 +450,14 @@ class ContentPreview extends React.PureComponent<Props, State> {
         head.appendChild(script);
     }
 
+    focusAnnotation = () => {
+        const { selectedAnnotation } = this.state;
+
+        if (this.preview && this.preview.setAnnotation && selectedAnnotation) {
+            this.preview.setAnnotation(selectedAnnotation);
+        }
+    };
+
     /**
      * Focuses the preview on load.
      *
@@ -644,12 +653,17 @@ class ContentPreview extends React.PureComponent<Props, State> {
         }
 
         onLoad(loadData);
+
         this.focusPreview();
-        if (this.preview && filesToPrefetch.length) {
-            this.prefetch(filesToPrefetch);
+        this.handleCanPrint();
+
+        if (data.viewer) {
+            data.viewer.on('scale', this.focusAnnotation);
         }
 
-        this.handleCanPrint();
+        if (filesToPrefetch.length) {
+            this.prefetch(filesToPrefetch);
+        }
     };
 
     /**
@@ -1074,6 +1088,10 @@ class ContentPreview extends React.PureComponent<Props, State> {
         }
     };
 
+    onAnnotationChange = (annotationId?: string): void => {
+        this.setState({ selectedAnnotation: annotationId }, this.focusAnnotation);
+    };
+
     /**
      * Handles version change events
      *
@@ -1085,6 +1103,7 @@ class ContentPreview extends React.PureComponent<Props, State> {
         this.updateVersionToCurrent = additionalVersionInfo.updateVersionToCurrent;
 
         onVersionChange(version, additionalVersionInfo);
+
         this.setState({
             selectedVersion: version,
         });
@@ -1215,6 +1234,10 @@ class ContentPreview extends React.PureComponent<Props, State> {
                         {file && (
                             <LoadableSidebar
                                 {...contentSidebarProps}
+                                activitySidebarProps={{
+                                    ...contentSidebarProps.activitySidebarProps,
+                                    onAnnotationChange: this.onAnnotationChange,
+                                }}
                                 apiHost={apiHost}
                                 token={token}
                                 cache={this.api.getCache()}

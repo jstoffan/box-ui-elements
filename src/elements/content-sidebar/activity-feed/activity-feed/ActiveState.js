@@ -5,6 +5,8 @@
 import * as React from 'react';
 import classNames from 'classnames';
 import getProp from 'lodash/get';
+import Button from '../../../../components/button';
+import NavButton from '../../../common/nav-button';
 import AppActivity from '../app-activity';
 import Comment from '../comment';
 import TaskNew from '../task-new';
@@ -27,6 +29,7 @@ type Props = {
     getUserProfileUrl?: GetProfileUrlCallback,
     items: FeedItems,
     mentionSelectorContacts?: SelectorItems<>,
+    onAnnotationChange?: Function,
     onAppActivityDelete?: Function,
     onCommentDelete?: Function,
     onCommentEdit?: Function,
@@ -48,6 +51,7 @@ const ActiveState = ({
     mentionSelectorContacts,
     getMentionWithQuery,
     onAppActivityDelete,
+    onAnnotationChange,
     onCommentDelete,
     onCommentEdit,
     onTaskDelete,
@@ -137,6 +141,33 @@ const ActiveState = ({
                                 data-testid="app-activity"
                             >
                                 <AppActivity currentUser={currentUser} onDelete={onAppActivityDelete} {...item} />
+                            </li>
+                        );
+                    case 'annotation':
+                        return (
+                            <li
+                                key={item.type + item.id}
+                                className={classNames('bcs-activity-feed-comment', { 'bcs-is-focused': isFocused })}
+                                data-test-id="annotation"
+                            >
+                                <Comment
+                                    {...item}
+                                    currentUser={currentUser}
+                                    getAvatarUrl={getAvatarUrl}
+                                    getMentionWithQuery={getMentionWithQuery}
+                                    getUserProfileUrl={getUserProfileUrl}
+                                    tagged_message={item.message}
+                                    translations={translations}
+                                >
+                                    <NavButton
+                                        className="bcs-Annotation-link"
+                                        component={Button}
+                                        onClick={() => onAnnotationChange && onAnnotationChange(item.id)}
+                                        to={`/activity/annotations/${item.id}`}
+                                    >
+                                        Go to page {item.details.location.page}
+                                    </NavButton>
+                                </Comment>
                             </li>
                         );
                     default:
