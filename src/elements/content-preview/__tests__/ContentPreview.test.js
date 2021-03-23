@@ -2,10 +2,10 @@ import React from 'react';
 import noop from 'lodash/noop';
 import { shallow } from 'enzyme';
 import * as TokenService from '../../../utils/TokenService';
-import { PREVIEW_FIELDS_TO_FETCH } from '../../../utils/fields';
-import { ContentPreviewComponent as ContentPreview } from '../ContentPreview';
-import PreviewLoading from '../PreviewLoading';
+import PreviewMask from '../PreviewMask';
 import SidebarUtils from '../../content-sidebar/SidebarUtils';
+import { ContentPreviewComponent as ContentPreview } from '../ContentPreview';
+import { PREVIEW_FIELDS_TO_FETCH } from '../../../utils/fields';
 
 jest.mock('../../common/Internationalize', () => 'mock-internationalize');
 
@@ -790,9 +790,9 @@ describe('elements/content-preview/ContentPreview', () => {
     });
 
     describe('render()', () => {
-        test('should render PreviewLoading if there is no file', () => {
+        test('should render PreviewMask if there is no file', () => {
             const wrapper = getWrapper(props);
-            expect(wrapper.find(PreviewLoading).exists()).toBe(true);
+            expect(wrapper.find(PreviewMask).exists()).toBe(true);
         });
 
         test('should render nothing if there is no fileId', () => {
