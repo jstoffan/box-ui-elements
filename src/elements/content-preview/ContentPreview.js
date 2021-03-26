@@ -370,6 +370,7 @@ class ContentPreview extends React.PureComponent<Props, State> {
             this.fetchFile(currentFileId);
         } else if (this.shouldLoadPreview(prevState)) {
             this.destroyPreview(false);
+            this.setState({ isLoading: true });
             this.loadPreview();
         } else if (hasTokenChanged) {
             this.updatePreviewToken();
@@ -571,7 +572,7 @@ class ContentPreview extends React.PureComponent<Props, State> {
         const { onError } = this.props;
 
         // In case of error, there should be no thumbnail sidebar to account for
-        this.setState({ isThumbnailSidebarOpen: false });
+        this.setState({ isLoading: false, isThumbnailSidebarOpen: false });
 
         onError(
             error,
@@ -1251,7 +1252,7 @@ class ContentPreview extends React.PureComponent<Props, State> {
         }
 
         const errorCode = getProp(error, 'code');
-        const extension = getProp(file, 'extension');
+        const currentExtension = getProp(file, 'id') === currentFileId ? getProp(file, 'extension') : '';
         const currentVersionId = getProp(file, 'file_version.id');
         const selectedVersionId = getProp(selectedVersion, 'id', currentVersionId);
         const onHeaderClose = currentVersionId === selectedVersionId ? onClose : this.updateVersionToCurrent;
@@ -1278,10 +1279,12 @@ class ContentPreview extends React.PureComponent<Props, State> {
                     )}
                     <div className="bcpr-body">
                         <div className="bcpr-container" onMouseMove={this.onMouseMove} ref={this.containerRef}>
-                            <Measure bounds onResize={this.onResize}>
-                                {({ measureRef: previewRef }) => <div ref={previewRef} className="bcpr-content" />}
-                            </Measure>
-                            <PreviewMask errorCode={errorCode} extension={extension} isLoading={isLoading} />
+                            {file && (
+                                <Measure bounds onResize={this.onResize}>
+                                    {({ measureRef: previewRef }) => <div ref={previewRef} className="bcpr-content" />}
+                                </Measure>
+                            )}
+                            <PreviewMask errorCode={errorCode} extension={currentExtension} isLoading={isLoading} />
                             <PreviewNavigation
                                 collection={collection}
                                 currentIndex={this.getFileIndex()}

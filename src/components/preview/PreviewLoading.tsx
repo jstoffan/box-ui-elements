@@ -1,7 +1,7 @@
 import * as React from 'react';
 import IconFileVideo from '../../icon/content/FileVideo32';
 import PreviewLoadingRing from './PreviewLoadingRing';
-import { getColor, getIcon } from './icons';
+import { getColor, getIcon } from './previewIcons';
 import './PreviewLoading.scss';
 
 export type Props = {
