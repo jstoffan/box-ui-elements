@@ -66,6 +66,7 @@ import type {
     Task,
     Tasks,
 } from '../common/types/feed';
+import MarkerBasedApi from './MarkerBasedAPI';
 
 const TASK_NEW_INITIAL_STATUS = TASK_NEW_NOT_STARTED;
 const TASK = 'task';
@@ -77,7 +78,7 @@ type FeedItemsCache = {
 
 type ErrorCallback = (e: ElementsXhrError, code: string, contextInfo?: Object) => void;
 
-class Feed extends Base {
+class Feed extends MarkerBasedApi {
     /**
      * @property {AnnotationsAPI}
      */
@@ -128,6 +129,20 @@ class Feed extends Base {
         this.taskCollaboratorsAPI = [];
         this.taskLinksAPI = [];
         this.errors = [];
+    }
+
+    /**
+     * API URL for file activities
+     *
+     * @param {string} fileId - a box file id
+     * @return {string} base url for file versions
+     */
+    getUrl(fileId: string): string {
+        if (!fileId) {
+            throw new Error('Missing file id!');
+        }
+
+        return `https://api.box.com/app-api/file_activities/${fileId}?activity_types=annotation,comment,versions`;
     }
 
     /**
@@ -321,33 +336,46 @@ class Feed extends Base {
 
         this.file = file;
         this.errors = [];
-        this.errorCallback = onError;
-        const annotationsPromise = shouldShowAnnotations ? this.fetchAnnotations(permissions) : Promise.resolve();
-        const versionsPromise = this.fetchVersions();
-        const currentVersionPromise = this.fetchCurrentVersion();
-        const commentsPromise = this.fetchComments(permissions);
-        const tasksPromise = this.fetchTasksNew();
-        const appActivityPromise = shouldShowAppActivity ? this.fetchAppActivity(permissions) : Promise.resolve();
 
-        Promise.all([
-            versionsPromise,
-            currentVersionPromise,
-            commentsPromise,
-            tasksPromise,
-            appActivityPromise,
-            annotationsPromise,
-        ]).then(([versions: ?FileVersions, currentVersion: ?BoxItemVersion, ...feedItems]) => {
-            const versionsWithCurrent = this.versionsAPI.addCurrentVersion(currentVersion, versions, this.file);
-            const sortedFeedItems = sortFeedItems(versionsWithCurrent, ...feedItems);
-            if (!this.isDestroyed()) {
-                this.setCachedItems(id, sortedFeedItems);
-                if (this.errors.length) {
-                    errorCallback(sortedFeedItems, this.errors);
-                } else {
-                    successCallback(sortedFeedItems);
-                }
-            }
+        this.markerGet({
+            id,
+            limit: 100,
+            errorCallback: onError,
+            requestHeaders: {
+                Accept: 'application/vnd.box+json;version=2',
+            },
+            successCallback: response => {
+                const feedItems = response.entries.map(({ activity_type, source }) => source[activity_type]);
+                successCallback(feedItems);
+            },
         });
+
+        // const annotationsPromise = shouldShowAnnotations ? this.fetchAnnotations(permissions) : Promise.resolve();
+        // const versionsPromise = this.fetchVersions();
+        // const currentVersionPromise = this.fetchCurrentVersion();
+        // const commentsPromise = this.fetchComments(permissions);
+        // const tasksPromise = this.fetchTasksNew();
+        // const appActivityPromise = shouldShowAppActivity ? this.fetchAppActivity(permissions) : Promise.resolve();
+        //
+        // Promise.all([
+        //     versionsPromise,
+        //     currentVersionPromise,
+        //     commentsPromise,
+        //     tasksPromise,
+        //     appActivityPromise,
+        //     annotationsPromise,
+        // ]).then(([versions: ?FileVersions, currentVersion: ?BoxItemVersion, ...feedItems]) => {
+        //     const versionsWithCurrent = this.versionsAPI.addCurrentVersion(currentVersion, versions, this.file);
+        //     const sortedFeedItems = sortFeedItems(versionsWithCurrent, ...feedItems);
+        //     if (!this.isDestroyed()) {
+        //         this.setCachedItems(id, sortedFeedItems);
+        //         if (this.errors.length) {
+        //             errorCallback(sortedFeedItems, this.errors);
+        //         } else {
+        //             successCallback(sortedFeedItems);
+        //         }
+        //     }
+        // });
     }
 
     fetchAnnotations(permissions: BoxItemPermission): Promise<?Annotations> {

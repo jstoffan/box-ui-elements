@@ -40,8 +40,9 @@ class MarkerBasedApi extends Base {
      * @param {string} id the file id
      * @param {string} marker the marker from the start to start fetching at
      * @param {number} limit the number of items to fetch
-     * @param {Object} requestData the request query params
      * @param {boolean} shouldFetchAll true if should get all the pages before calling
+     * @param {Object} requestData the request query params
+     * @param {Object} requestHeaders the request headers
      * @private
      */
     async markerGetRequest(
@@ -50,6 +51,7 @@ class MarkerBasedApi extends Base {
         limit: number,
         shouldFetchAll: boolean,
         requestData: Object = {},
+        requestHeaders: Object = {},
     ): Promise<void> {
         if (this.isDestroyed()) {
             return;
@@ -65,9 +67,10 @@ class MarkerBasedApi extends Base {
             };
 
             const { data }: { data: Data } = await this.xhr.get({
-                url,
+                headers: requestHeaders,
                 id: getTypedFileId(id),
                 params: queryParams,
+                url,
             });
 
             const entries = this.data ? this.data.entries : [];
@@ -96,6 +99,7 @@ class MarkerBasedApi extends Base {
      * @param {string} [options.marker] the marker from the start to start fetching at
      * @param {number} [options.limit] the number of items to fetch
      * @param {Object} options.requestData the request query params
+     * @param {Object} [options.requestHeaders] the request headers
      * @param {boolean} [options.shouldFetchAll] true if should get all the pages before calling the sucessCallback
      */
     async markerGet({
@@ -105,6 +109,7 @@ class MarkerBasedApi extends Base {
         marker = '',
         limit = 1000,
         requestData,
+        requestHeaders = {},
         shouldFetchAll = true,
     }: {
         errorCallback: ElementsErrorCallback,
@@ -112,13 +117,14 @@ class MarkerBasedApi extends Base {
         limit?: number,
         marker?: string,
         requestData?: Object,
+        requestHeaders?: Object,
         shouldFetchAll?: boolean,
         successCallback: Function,
     }): Promise<void> {
         this.successCallback = successCallback;
         this.errorCallback = errorCallback;
 
-        return this.markerGetRequest(id, marker, limit, shouldFetchAll, requestData);
+        return this.markerGetRequest(id, marker, limit, shouldFetchAll, requestData, requestHeaders);
     }
 }
 

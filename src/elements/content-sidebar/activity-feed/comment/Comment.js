@@ -101,6 +101,7 @@ class Comment extends React.Component<Props, State> {
             id,
             isPending,
             error,
+            message = '',
             tagged_message = '',
             translatedTaggedMessage,
             translations,
@@ -201,7 +202,7 @@ class Comment extends React.Component<Props, State> {
                                 onFocus={this.commentFormFocusHandler}
                                 isEditing={isEditing}
                                 entityId={id}
-                                tagged_message={tagged_message}
+                                tagged_message={tagged_message || message}
                                 getAvatarUrl={getAvatarUrl}
                                 mentionSelectorContacts={mentionSelectorContacts}
                                 getMentionWithQuery={getMentionWithQuery}
@@ -209,7 +210,7 @@ class Comment extends React.Component<Props, State> {
                         ) : (
                             <ActivityMessage
                                 id={id}
-                                tagged_message={tagged_message}
+                                tagged_message={tagged_message || message}
                                 translatedTaggedMessage={translatedTaggedMessage}
                                 {...translations}
                                 translationFailed={error ? true : null}
